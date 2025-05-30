@@ -60,6 +60,6 @@ app.get('/gateway-health', (req, res) => {
 
 const port = process.env.PORT || 8080;
 const server = app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}/api`);
+  console.log(`Listening at http://localhost:${port}`);
 });
 server.on('error', console.error);
