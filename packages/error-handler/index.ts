@@ -36,10 +36,10 @@ export class NotFoundError extends AppError {
 
 // Bad Request Error
 
-export class BadRequestError extends AppError {
-  constructor(message: string = 'Bad request', details?: any) {
+export class ValidationError extends AppError {
+  constructor(message: string = 'Invalid request data.', details?: any) {
     super(message, 400, true, details);
-    this.name = 'BadRequestError';
+    this.name = 'ValidationError';
   }
 }
 
@@ -78,11 +78,3 @@ export class RateLimitError extends AppError {
 }
 
 
-// validation Error (use for joi/zod/react-hook-form validation errors)
-
-// export class ValidationError extends AppError {
-//   constructor(message: string = 'Invalid request data.', details?: any) {
-//     super(message, 422, true, details);
-//     this.name = 'ValidationError';
-//   }
-// }
