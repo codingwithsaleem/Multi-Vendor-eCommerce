@@ -143,9 +143,10 @@ Filter
 
 # Auth Service Start
 
-1: install orm
+## 1: install orm
 
 npm install prisma @prisma/client
+
 npx prisma init 
 
 install the prisma extention for better autcomplete
@@ -154,8 +155,28 @@ npx prisma db push
 
 npm install ioredis nodemailer dotenv ejs
 
+## 2: install nodemailer for sending email and ejs for templates and ditenv for envirnmaent varialbe
+
+npm i nodemailer ejs dotenv
+
+npm i --save-dev @types/nodemailer
+
+npm i --save-dev @types/ejs
+
+## 3: setup redis for secondary database 
+
+for redis you can use https://upstash.com/
+
+npm install ioredis
+
+npm install --save-dev @types/ioredis
 
 
+## 4: setup swagger for api documentation
+
+npm i swagger-autogen
+
+run command node swagger.js for getting automatice docementation
 
 
 
