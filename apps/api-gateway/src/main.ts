@@ -14,7 +14,7 @@ const app = express();
 
 // cors middeware used for enabling cross-origin resource sharing 
 app.use(cors({
-  origin: ['http://localhost:3000'],
+  origin: ['http://localhost:3000', 'http://localhost:6001', 'http://localhost:3001'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }))

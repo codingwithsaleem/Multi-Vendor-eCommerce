@@ -36,7 +36,7 @@ export const userRegister = async (
 
   await checkOtpRestriction(email, next);
   await trackOtpRequests(email, next);
-  await sendOtp(email, name,"user-activation-mail-template");
+  await sendOtp(name,email,"user-activation-mail-template");
 
   return res.status(200).json({
     message: "OTP sent to your email. Please verify your email to complete registration.",

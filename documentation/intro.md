@@ -155,7 +155,7 @@ npx prisma db push
 
 npm install ioredis nodemailer dotenv ejs
 
-## 2: install nodemailer for sending email and ejs for templates and ditenv for envirnmaent varialbe
+## 2: install nodemailer for sending email and ejs for templates and dotenv for envirnmaent varialbe
 
 npm i nodemailer ejs dotenv
 
