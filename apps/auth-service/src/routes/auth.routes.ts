@@ -1,5 +1,5 @@
 import express, {Router} from 'express';
-import { userRegister } from '../controller/auth.controller';
+import { userRegister,  verifyUserRegisteration} from '../controller/auth.controller';
 
 
 const autRrouter: Router = express.Router();
@@ -7,6 +7,7 @@ const autRrouter: Router = express.Router();
 
 
 autRrouter.post('/user-register', userRegister);
+autRrouter.post('/user-verify', verifyUserRegisteration); 
 
 
 export default autRrouter;

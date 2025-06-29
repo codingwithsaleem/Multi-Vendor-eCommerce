@@ -20,29 +20,19 @@
     "/user-register": {
       "post": {
         "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "example": "saleem raza"
-                },
-                "email": {
-                  "example": "sr.saleem774@gmail.com"
-                },
-                "password": {
-                  "example": "saleem123"
-                }
-              }
-            }
-          }
-        ],
         "responses": {
-          "200": {
-            "description": "OK"
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/user-verify": {
+      "post": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
           }
         }
       }
