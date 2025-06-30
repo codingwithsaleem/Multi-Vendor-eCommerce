@@ -3,6 +3,7 @@ import { ValidationError } from "../../../../packages/error-handler";
 import { NextFunction } from "express";
 import redis from "../../../../packages/libs/redis";
 import { sendEmail } from "./sendMail";
+import jwt from "jsonwebtoken";
 
 // validate the register user data
 
@@ -168,3 +169,31 @@ export const verifyOtp = async (email: string, otp: string, next: NextFunction) 
 
     await redis.del(`otp:${email}`);
 };
+
+
+// Generate a Access Token and Refresh Token uisng the JWT
+
+
+export const generateAccessToken = async (id:string, email:string, role: string) => {
+    const payload = {
+        id,
+        email,
+        role,
+    };
+
+    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET as string, {
+        expiresIn: "15m",
+    });
+}
+
+export const generateRefreshToken = async (id:string,name:string,role:string) => {
+    const payload = {
+        id,
+        name,
+        role,
+    };
+
+    return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET as string, {
+        expiresIn: "30d",
+    });
+}

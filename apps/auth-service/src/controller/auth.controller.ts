@@ -1,17 +1,28 @@
 import { Response, Request, NextFunction } from "express";
 import {
   checkOtpRestriction,
+  generateAccessToken,
+  generateRefreshToken,
   sendOtp,
   trackOtpRequests,
   validateRegisterData,
   verifyOtp,
 } from "../utils/auth.helper";
 import prisma from "@packages/libs/prisma";
-import { ValidationError } from "@packages/error-handler";
+import { ValidationError ,UnauthorizedError} from "@packages/error-handler";
 import bcrypt from "bcryptjs";
+import { setCookies } from "../utils/cookies/setCookies";
 
 
 // register a new user
+/**
+ * Register a new user
+ * @param {Object} req.body - The request body
+ * @param {string} req.body.name - User's full name
+ * @param {string} req.body.email - User's email address
+ * @returns {Object} 200 - Success response with OTP sent message
+ * @returns {Object} 400 - Validation error response
+ */
 export const userRegister = async (
   req: Request,
   res: Response,
@@ -50,7 +61,7 @@ export const userRegister = async (
   } catch (error) {
     const errorMessage = (error instanceof Error) ? error.message : String(error);
     return next(
-      new ValidationError("Failed to register user", {
+      new ValidationError(`Failed to register user ,${errorMessage}`, {
         details: { error: errorMessage },
       })
     );
@@ -60,7 +71,16 @@ export const userRegister = async (
 
 
 // Verify user registration
-
+/**
+ * Verify user registration using OTP
+ * @param {Object} req.body - The request body
+ * @param {string} req.body.name - User's full name
+ * @param {string} req.body.email - User's email address
+ * @param {string} req.body.password - User's password
+ * @param {string} req.body.otp - OTP received via email
+ * @returns {Object} 200 - Success response with verification message
+ * @returns {Object} 400 - Validation error or invalid OTP response
+ */
 export const verifyUserRegisteration = async (
   req: Request,
   res: Response,
@@ -72,11 +92,16 @@ export const verifyUserRegisteration = async (
 
     // Validate the OTP and email
     if (!email || !otp || !password || !name) {
-
-      throw new ValidationError("Email and OTP are required for verification", {
-        details: { email: "Email is required", otp: "OTP is required" },
-      })
-
+      return next(
+        new ValidationError("Email, OTP, password, and name are required for verification", {
+          details: { 
+            email: !email ? "Email is required" : undefined,
+            otp: !otp ? "OTP is required" : undefined,
+            password: !password ? "Password is required" : undefined,
+            name: !name ? "Name is required" : undefined
+          },
+        })
+      );
     }
 
     // check existing user
@@ -86,9 +111,11 @@ export const verifyUserRegisteration = async (
     });
 
     if (existingUser) {
-      throw new ValidationError("User already exists", {
-        details: { email: "Email is already registered" },
-      })
+      return next(
+        new ValidationError("User already exists", {
+          details: { email: "Email is already registered" },
+        })
+      );
     }
 
     // Verify the OTP
@@ -111,11 +138,87 @@ export const verifyUserRegisteration = async (
       message: "User registration verified successfully",
       status: true,
     });
-  } catch (error: string | any) {
+  } catch (error: any) {
+    const errorMessage = (error instanceof Error) ? error.message : String(error);
+    return next(
+      new ValidationError(`Failed to verify user registration: ${errorMessage}`, {
+        details: { error: errorMessage },
+      })
+    );
+  }
+}
 
-    throw new ValidationError("Failed to verify user registration", {
-      details: { error: error.message },
+
+
+// Login User 
+
+export const userLogin = async (req: Request, res: Response, next:NextFunction)=>{
+  try {
+    const { email, password } = req.body;
+
+    // Validate the request body for user login
+    if (!email || !password) {
+      return next(
+        new ValidationError("Email and password are required for login", {
+          details: { 
+            email: !email ? "Email is required" : undefined,
+            password: !password ? "Password is required" : undefined
+          },
+        })
+      );
+    }
+
+    // Check if the user exists
+    const user = await prisma.users.findUnique({
+      where: { email },
     })
 
+    if (!user) {
+      return next(
+        new UnauthorizedError("Invalid email or password", {
+          details: { email: "Email not found" },
+        })
+      );
+    }
+
+    // Verify the password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return next(
+        new UnauthorizedError("Invalid email or password", {
+          details: { password: "Incorrect password" },
+        })
+      );
+    }
+
+    // Generate a Access Token and Refresh Token uisng the JWT helper function
+    const accessToken = await generateAccessToken(user.id, user.email, "user");
+    const refreshToken = await generateRefreshToken(user.id, user.name, "user");
+
+    // Set the refresh token in a secure, HttpOnly cookie
+
+    setCookies(res, "refreshToken", refreshToken);
+    setCookies(res, "accessToken", accessToken);
+
+    return res.status(200).json({
+      message: "User logged in successfully",
+      status: true,
+      data: {
+        accessToken,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: "user",
+        },
+      },
+    });
+
+
+
+    
+  } catch (error) {
+    
   }
 }

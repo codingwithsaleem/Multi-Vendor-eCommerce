@@ -19,20 +19,187 @@
   "paths": {
     "/user-register": {
       "post": {
-        "description": "",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Register a new user",
+        "description": "Creates a new user account with the provided details.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User registration data",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "John Doe"
+                },
+                "email": {
+                  "type": "string",
+                  "example": "user@example.com"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "Password123!"
+                }
+              },
+              "required": [
+                "email",
+                "password"
+              ]
+            }
+          }
+        ],
         "responses": {
-          "default": {
-            "description": ""
+          "200": {
+            "description": "User registered successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Registration successful"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
           }
         }
       }
     },
     "/user-verify": {
       "post": {
-        "description": "",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Verify a user",
+        "description": "Verifies a user's email or phone using a verification code.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Verification data",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "John Doe"
+                },
+                "email": {
+                  "type": "string",
+                  "example": "user@example.com"
+                },
+                "otp": {
+                  "type": "string",
+                  "example": "123456"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "Password123!"
+                }
+              },
+              "required": [
+                "email",
+                "code"
+              ]
+            }
+          }
+        ],
         "responses": {
-          "default": {
-            "description": ""
+          "200": {
+            "description": "User verified successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Verification successful"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid verification code"
+          }
+        }
+      }
+    },
+    "/user-login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "User login",
+        "description": "Logs in a user and returns access and refresh tokens.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User login data",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "abc@gmail.com"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "Password123!"
+                }
+              },
+              "required": [
+                "email",
+                "password"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User logged in successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "User logged in successfully"
+                },
+                "accessToken": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid login credentials"
           }
         }
       }
