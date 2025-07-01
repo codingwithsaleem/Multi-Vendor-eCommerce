@@ -17,7 +17,7 @@
     "http"
   ],
   "paths": {
-    "/user-register": {
+ "/user-register": {
       "post": {
         "tags": [
           "Authentication"
@@ -200,6 +200,56 @@
           },
           "400": {
             "description": "Invalid login credentials"
+          }
+        }
+      }
+    },
+    "/user-forgot": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Forgot password",
+        "description": "Sends a verification code to the user's email for password reset.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Forgot password data",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "abc@gmail.com"
+                }}}
+
+      }
+    ]
+    },
+    "/user-forgot-verify": {
+      "post": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/user-reset-password": {
+      "post": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
           }
         }
       }

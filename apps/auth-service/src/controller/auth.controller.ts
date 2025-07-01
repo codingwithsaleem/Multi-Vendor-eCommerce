@@ -3,16 +3,16 @@ import {
   checkOtpRestriction,
   generateAccessToken,
   generateRefreshToken,
+  handleForgotPassword,
   sendOtp,
   trackOtpRequests,
   validateRegisterData,
   verifyOtp,
 } from "../utils/auth.helper";
 import prisma from "@packages/libs/prisma";
-import { ValidationError ,UnauthorizedError} from "@packages/error-handler";
+import { ValidationError, UnauthorizedError } from "@packages/error-handler";
 import bcrypt from "bcryptjs";
 import { setCookies } from "../utils/cookies/setCookies";
-
 
 // register a new user
 /**
@@ -29,8 +29,6 @@ export const userRegister = async (
   next: NextFunction
 ) => {
   try {
-
-
     // If validation passes, proceed to the next middleware or controller
 
     const { name, email } = req.body;
@@ -55,20 +53,19 @@ export const userRegister = async (
     await sendOtp(name, email, "user-activation-mail-template");
 
     return res.status(200).json({
-      message: "OTP sent to your email. Please verify your email to complete registration.",
+      message:
+        "OTP sent to your email. Please verify your email to complete registration.",
       status: true,
     });
   } catch (error) {
-    const errorMessage = (error instanceof Error) ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return next(
       new ValidationError(`Failed to register user ,${errorMessage}`, {
         details: { error: errorMessage },
       })
     );
-
   }
 };
-
 
 // Verify user registration
 /**
@@ -87,20 +84,22 @@ export const verifyUserRegisteration = async (
   next: NextFunction
 ) => {
   try {
-
     const { email, otp, password, name } = req.body;
 
     // Validate the OTP and email
     if (!email || !otp || !password || !name) {
       return next(
-        new ValidationError("Email, OTP, password, and name are required for verification", {
-          details: { 
-            email: !email ? "Email is required" : undefined,
-            otp: !otp ? "OTP is required" : undefined,
-            password: !password ? "Password is required" : undefined,
-            name: !name ? "Name is required" : undefined
-          },
-        })
+        new ValidationError(
+          "Email, OTP, password, and name are required for verification",
+          {
+            details: {
+              email: !email ? "Email is required" : undefined,
+              otp: !otp ? "OTP is required" : undefined,
+              password: !password ? "Password is required" : undefined,
+              name: !name ? "Name is required" : undefined,
+            },
+          }
+        )
       );
     }
 
@@ -139,20 +138,25 @@ export const verifyUserRegisteration = async (
       status: true,
     });
   } catch (error: any) {
-    const errorMessage = (error instanceof Error) ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return next(
-      new ValidationError(`Failed to verify user registration: ${errorMessage}`, {
-        details: { error: errorMessage },
-      })
+      new ValidationError(
+        `Failed to verify user registration: ${errorMessage}`,
+        {
+          details: { error: errorMessage },
+        }
+      )
     );
   }
-}
+};
 
+// Login User
 
-
-// Login User 
-
-export const userLogin = async (req: Request, res: Response, next:NextFunction)=>{
+export const userLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email, password } = req.body;
 
@@ -160,9 +164,9 @@ export const userLogin = async (req: Request, res: Response, next:NextFunction)=
     if (!email || !password) {
       return next(
         new ValidationError("Email and password are required for login", {
-          details: { 
+          details: {
             email: !email ? "Email is required" : undefined,
-            password: !password ? "Password is required" : undefined
+            password: !password ? "Password is required" : undefined,
           },
         })
       );
@@ -171,7 +175,7 @@ export const userLogin = async (req: Request, res: Response, next:NextFunction)=
     // Check if the user exists
     const user = await prisma.users.findUnique({
       where: { email },
-    })
+    });
 
     if (!user) {
       return next(
@@ -214,11 +218,155 @@ export const userLogin = async (req: Request, res: Response, next:NextFunction)=
         },
       },
     });
-
-
-
-    
   } catch (error) {
-    
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new ValidationError(`Failed to login user: ${errorMessage}`, {
+      details: { error: errorMessage },
+    });
   }
-}
+};
+
+//  Forgot Password
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+
+    // Validate the request body for forgot password
+    if (!email) {
+      return next(
+        new ValidationError("Email is required for password reset", {
+          details: { email: "Email is required" },
+        })
+      );
+    }
+
+    await handleForgotPassword(email, "user", res, next);
+
+    // Respond with success message
+
+    res.status(200).json({
+      message:
+        "Password reset successfully. Check your email for the new password.",
+      status: true,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new ValidationError(
+      `Failed to send OTP for password reset: ${errorMessage}`,
+      {
+        details: { error: errorMessage },
+      }
+    );
+  }
+};
+
+// verify forgot password OTP
+
+export const verifyForgotPasswordOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Validate the request body for OTP verification
+    if (!email || !otp) {
+      return next(
+        new ValidationError("Email and OTP are required for verification", {
+          details: {
+            email: !email ? "Email is required" : undefined,
+            otp: !otp ? "OTP is required" : undefined,
+          },
+        })
+      );
+    }
+
+    // Verify the OTP
+    await verifyOtp(email, otp, next);
+
+    return res.status(200).json({
+      message: "OTP verified successfully",
+      status: true,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new ValidationError(`Failed to verify OTP: ${errorMessage}`, {
+      details: { error: errorMessage },
+    });
+  }
+};
+
+
+// Reset Password 
+
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    // Validate the request body for reset password
+    if (!email || !otp || !newPassword) {
+      return next(
+        new ValidationError("Email, OTP, and new password are required", {
+          details: {
+            email: !email ? "Email is required" : undefined,
+            otp: !otp ? "OTP is required" : undefined,
+            newPassword: !newPassword ? "New password is required" : undefined,
+          },
+        })
+      );
+    }
+
+    // check if user exists
+    const user = await prisma.users.findUnique({  
+      where: { email },
+    });
+
+    if (!user) {
+      return next(
+        new UnauthorizedError("User not found", {
+          details: { email: "User with this email does not exist" },
+        })
+      );
+    }
+
+    // compare the new password with the existing password
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+
+    if (isSamePassword) {
+      return next(
+        new ValidationError("New password cannot be the same as the old one", {
+          details: { newPassword: "New password must be different" },
+        })
+      );
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password in the database
+    await prisma.users.update({
+      where: { email },
+      data: { password: hashedPassword },
+    });
+
+    return res.status(200).json({
+      message: "Password reset successfully",
+      status: true,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new ValidationError(`Failed to reset password: ${errorMessage}`, {
+      details: { error: errorMessage },
+    });
+  }
+};

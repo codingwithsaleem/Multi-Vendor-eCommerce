@@ -180,7 +180,20 @@ run command node swagger.js for getting automatice docementation
 
 
 
+## 5 jwt for access token and refresh token and bcryptjs for hash password 
 
+ secure JWT authentication system with session management.
+
+Features:
+Access + Refresh tokens
+
+Session table in PostgreSQL
+
+Refresh token rotation
+
+Multi-device login tracking
+
+Logout individual or all sessions
 
 
 
